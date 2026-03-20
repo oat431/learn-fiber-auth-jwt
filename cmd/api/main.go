@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"oat431/learn-fiber-auth-jwt/internal/bootstrap"
 	"oat431/learn-fiber-auth-jwt/internal/config"
 	"oat431/learn-fiber-auth-jwt/internal/router"
 	"os"
@@ -14,8 +15,10 @@ func main() {
 	db := config.StartDatabase()
 	defer db.Close()
 
+	apiContainer := bootstrap.NewAPIContainer(db)
+
 	app := fiber.New()
-	router.SetupRoutes(app)
+	router.SetupRoutes(app, apiContainer)
 
 	port := os.Getenv("PORT")
 	err := app.Listen(":" + port)
