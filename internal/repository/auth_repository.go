@@ -7,6 +7,7 @@ import (
 	"oat431/learn-fiber-auth-jwt/pkg/common"
 	"oat431/learn-fiber-auth-jwt/pkg/utils"
 
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -56,7 +57,26 @@ func (r *authRepository) Register(ctx context.Context, request request.RegisterR
 }
 
 func (r *authRepository) GetAuthByUsername(ctx context.Context, username string) (*model.Auth, error) {
-	return nil, nil
+	query := `
+		SELECT 
+			id,
+			created_at,
+			updated_at,
+			deleted_at,
+			username,
+			email,
+			"password"
+		FROM
+			tb_auth
+		WHERE
+			username = $1`
+	var auth model.Auth
+	err := r.db.GetContext(ctx, &auth, query, username)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	return &auth, nil
 }
 
 func (r *authRepository) GetAuthByID(ctx context.Context, id int) (*model.Auth, error) {

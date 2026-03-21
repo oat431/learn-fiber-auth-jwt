@@ -36,3 +36,23 @@ func (auth *AuthController) RegisterNewUser(c fiber.Ctx) error {
 	response.Error = nil
 	return c.Status(fiber.StatusCreated).JSON(response)
 }
+
+func (auth *AuthController) LoginIn(c fiber.Ctx) error {
+	req := c.Locals("payload").(*request.LoginRequest)
+	authDto, err := auth.service.LoginIn(c.Context(), *req)
+	var response = common.ResponseDTO[response.AuthResponse]{}
+	if err != nil {
+		response.Data = nil
+		response.Status = common.ERROR
+		response.Error = &common.ResponseDTOError{
+			HttpCode:  fiber.ErrBadRequest.Code,
+			ErrorCode: "LOGIN-01",
+			Message:   "Invalid username or password",
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
+	response.Data = authDto
+	response.Status = common.SUCCESS
+	response.Error = nil
+	return c.Status(fiber.StatusOK).JSON(response)
+}
