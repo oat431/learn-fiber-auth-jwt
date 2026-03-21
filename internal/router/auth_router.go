@@ -15,4 +15,9 @@ func RegisterAuthRoutes(router fiber.Router, controller *controller.AuthControll
 		middleware.Validate[request.RegisterRequest],
 		controller.RegisterNewUser,
 	)
+
+	route.Post("/login",
+		middleware.Validate[request.LoginRequest],
+		controller.LoginIn,
+	)
 }
