@@ -20,39 +20,74 @@ func NewAuthController(service service.AuthService) *AuthController {
 func (auth *AuthController) RegisterNewUser(c fiber.Ctx) error {
 	req := c.Locals("payload").(*request.RegisterRequest)
 	authDto, err := auth.service.Register(c.Context(), *req)
-	var response = common.ResponseDTO[response.AuthResponse]{}
 	if err != nil {
-		response.Data = nil
-		response.Status = common.ERROR
-		response.Error = &common.ResponseDTOError{
-			HttpCode:  fiber.ErrBadRequest.Code,
-			ErrorCode: "REGISTER-01",
-			Message:   err.Error(),
-		}
-		return c.Status(fiber.StatusBadRequest).JSON(response)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrBadRequest.Code,
+				ErrorCode: "REGISTER-01",
+				Message:   err.Error(),
+			},
+		})
 	}
-	response.Data = authDto
-	response.Status = common.SUCCESS
-	response.Error = nil
-	return c.Status(fiber.StatusCreated).JSON(response)
+
+	return c.Status(fiber.StatusCreated).JSON(common.ResponseDTO[response.AuthResponse]{
+		Status: common.SUCCESS,
+		Data:   authDto,
+	})
 }
 
 func (auth *AuthController) LoginIn(c fiber.Ctx) error {
 	req := c.Locals("payload").(*request.LoginRequest)
-	authDto, err := auth.service.LoginIn(c.Context(), *req)
-	var response = common.ResponseDTO[response.AuthResponse]{}
+	tokenDto, err := auth.service.LoginIn(c.Context(), *req)
 	if err != nil {
-		response.Data = nil
-		response.Status = common.ERROR
-		response.Error = &common.ResponseDTOError{
-			HttpCode:  fiber.ErrBadRequest.Code,
-			ErrorCode: "LOGIN-01",
-			Message:   "Invalid username or password",
-		}
-		return c.Status(fiber.StatusBadRequest).JSON(response)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrBadRequest.Code,
+				ErrorCode: "LOGIN-01",
+				Message:   "Invalid username or password",
+			},
+		})
 	}
-	response.Data = authDto
-	response.Status = common.SUCCESS
-	response.Error = nil
-	return c.Status(fiber.StatusOK).JSON(response)
+
+	return c.Status(fiber.StatusOK).JSON(common.ResponseDTO[response.JWTResponse]{
+		Status: common.SUCCESS,
+		Data:   tokenDto,
+	})
+}
+
+func (auth *AuthController) RevokeAccess(c fiber.Ctx) error {
+	var body struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.Bind().JSON(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrBadRequest.Code,
+				ErrorCode: "REVOKE-01",
+				Message:   "Invalid request body",
+			},
+		})
+	}
+
+	err := auth.service.RevokeAccess(c.Context(), body.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrInternalServerError.Code,
+				ErrorCode: "REVOKE-02",
+				Message:   err.Error(),
+			},
+		})
+	}
+
+	message := "Access revoked"
+	return c.Status(fiber.StatusOK).JSON(common.ResponseDTO[string]{
+		Status: common.SUCCESS,
+		Data:   &message,
+	})
 }

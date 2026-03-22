@@ -17,8 +17,11 @@ func NewAPIContainer(db *sqlx.DB) *APIContainer {
 	log.Info("Registering Auth Repository")
 	authRepository := repository.NewAuthRepository(db)
 
+	log.Info("Registering Refresh Token Repository")
+	refreshTokenRepository := repository.NewRefreshTokenRepository(db)
+
 	log.Info("Registering Auth Service")
-	authService := service.NewAuthService(authRepository)
+	authService := service.NewAuthService(authRepository, refreshTokenRepository)
 
 	log.Info("Registering Auth Controller")
 	authController := controller.NewAuthController(authService)
