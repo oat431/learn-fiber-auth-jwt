@@ -20,4 +20,8 @@ func RegisterAuthRoutes(router fiber.Router, controller *controller.AuthControll
 		middleware.Validate[request.LoginRequest],
 		controller.LoginIn,
 	)
+
+	route.Post("/revoke",
+		controller.RevokeAccess,
+	)
 }
