@@ -24,4 +24,9 @@ func RegisterAuthRoutes(router fiber.Router, controller *controller.AuthControll
 	route.Post("/revoke",
 		controller.RevokeAccess,
 	)
+
+	route.Get("/detail",
+		middleware.JWTMiddleware,
+		controller.GetUserDetails,
+	)
 }
