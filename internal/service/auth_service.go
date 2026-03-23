@@ -10,6 +10,8 @@ import (
 	"oat431/learn-fiber-auth-jwt/pkg/utils"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/gofiber/fiber/v3/log"
 )
 
@@ -22,6 +24,7 @@ type AuthService interface {
 	Register(ctx context.Context, request request.RegisterRequest) (*response.AuthResponse, error)
 	LoginIn(ctx context.Context, request request.LoginRequest) (*response.JWTResponse, error)
 	RevokeAccess(ctx context.Context, refreshToken string) error
+	GetUserDetails(ctx context.Context, authID uuid.UUID) (*response.AuthResponse, error)
 }
 
 func NewAuthService(repo repository.AuthRepository, refreshTokenRepo repository.RefreshTokenRepository) AuthService {
@@ -97,4 +100,17 @@ func (s *authService) LoginIn(ctx context.Context, request request.LoginRequest)
 
 func (s *authService) RevokeAccess(ctx context.Context, refreshToken string) error {
 	return s.refreshTokenRepo.Revoke(ctx, refreshToken)
+}
+
+func (s *authService) GetUserDetails(ctx context.Context, authID uuid.UUID) (*response.AuthResponse, error) {
+	auth, err := s.repo.GetAuthByID(ctx, authID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.AuthResponse{
+		ID:       utils.UUIDToString(auth.ID),
+		Username: auth.Username,
+		Email:    auth.Email,
+	}, nil
 }

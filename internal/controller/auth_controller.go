@@ -7,6 +7,7 @@ import (
 	"oat431/learn-fiber-auth-jwt/pkg/common"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type AuthController struct {
@@ -89,5 +90,25 @@ func (auth *AuthController) RevokeAccess(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(common.ResponseDTO[string]{
 		Status: common.SUCCESS,
 		Data:   &message,
+	})
+}
+
+func (auth *AuthController) GetUserDetails(c fiber.Ctx) error {
+	authID := c.Locals("auth_id").(uuid.UUID)
+	authDto, err := auth.service.GetUserDetails(c.Context(), authID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrInternalServerError.Code,
+				ErrorCode: "DETAIL-01",
+				Message:   err.Error(),
+			},
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.ResponseDTO[response.AuthResponse]{
+		Status: common.SUCCESS,
+		Data:   authDto,
 	})
 }
