@@ -10,8 +10,8 @@ type SMTPService struct {
 	config *config.Config
 }
 
-func NewSMTPService(config *config.Config) *SMTPService {
-	return &SMTPService{config: config}
+func NewSMTPService(cfg *config.Config) *SMTPService {
+	return &SMTPService{config: cfg}
 }
 
 func (s *SMTPService) SendMail(to string) error {

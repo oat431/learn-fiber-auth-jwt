@@ -14,7 +14,7 @@ type Config struct {
 	CodeExpiration time.Duration
 }
 
-func GetConfig() *Config {
+func GetEmailConfig() *Config {
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
 		port = 587
@@ -24,6 +24,6 @@ func GetConfig() *Config {
 		SMTPPort:       port,
 		SMTPUser:       os.Getenv("SMTP_USER"),
 		SMTPPassword:   os.Getenv("SMTP_PASS"),
-		CodeExpiration: time.Minute * 1,
+		CodeExpiration: time.Minute,
 	}
 }
