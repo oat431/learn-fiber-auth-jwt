@@ -21,6 +21,7 @@ type AuthRepository interface {
 	GetAuthByUsername(ctx context.Context, username string) (*model.Auth, error)
 	GetAuthByID(ctx context.Context, id uuid.UUID) (*model.Auth, error)
 	GetAuthByEmail(ctx context.Context, email string) (*model.Auth, error)
+	MarkAsVerified(ctx context.Context, authID uuid.UUID) error
 }
 
 func NewAuthRepository(db *sqlx.DB) AuthRepository {
@@ -35,12 +36,12 @@ func (r *authRepository) Register(ctx context.Context, request request.RegisterR
 				deleted_at,
 				username,
 				email,
-				"password"
-			) VALUES ($1, $2, $3, $4, $5, $6, $7) 
-	RETURNING id, created_at, updated_at, deleted_at, username, email, "password"`
+				"password",
+				is_verified
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	id := utils.GenerateUUID()
 	currentTime := utils.GetCurrentTime()
-	_, err := r.db.ExecContext(ctx, query, id, currentTime, currentTime, nil, request.Username, request.Email, request.Password)
+	_, err := r.db.ExecContext(ctx, query, id, currentTime, currentTime, nil, request.Username, request.Email, request.Password, false)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +52,10 @@ func (r *authRepository) Register(ctx context.Context, request request.RegisterR
 			UpdatedAt: utils.GetTimeFromString(currentTime),
 			DeletedAt: nil,
 		},
-		Username: request.Username,
-		Email:    request.Email,
-		Password: request.Password,
+		Username:   request.Username,
+		Email:      request.Email,
+		Password:   request.Password,
+		IsVerified: false,
 	}, nil
 }
 
@@ -66,7 +68,8 @@ func (r *authRepository) GetAuthByUsername(ctx context.Context, username string)
 			deleted_at,
 			username,
 			email,
-			"password"
+			"password",
+			is_verified
 		FROM
 			tb_auth
 		WHERE
@@ -89,7 +92,8 @@ func (r *authRepository) GetAuthByID(ctx context.Context, id uuid.UUID) (*model.
 			deleted_at,
 			username,
 			email,
-			"password"
+			"password",
+			is_verified
 		FROM
 			tb_auth
 		WHERE
@@ -105,4 +109,10 @@ func (r *authRepository) GetAuthByID(ctx context.Context, id uuid.UUID) (*model.
 
 func (r *authRepository) GetAuthByEmail(ctx context.Context, email string) (*model.Auth, error) {
 	return nil, nil
+}
+
+func (r *authRepository) MarkAsVerified(ctx context.Context, authID uuid.UUID) error {
+	query := `UPDATE tb_auth SET is_verified = true, updated_at = NOW() WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, authID)
+	return err
 }
