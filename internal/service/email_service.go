@@ -44,7 +44,7 @@ func (s *SMTPService) SendVerificationEmail(to, token string) error {
 	subject := "Subject: Verify your email address\n"
 	body := fmt.Sprintf(
 		"Hello,\n\nPlease verify your email address by clicking the link below:\n\n"+
-			"http://localhost:3000/auth/verify-email?token=%s\n\n"+
+			"http://localhost:8003/api/v1/auth/verify-email?token=%s\n\n"+
 			"This link will expire in 24 hours.\n\n"+
 			"If you did not register, please ignore this email.",
 		token,

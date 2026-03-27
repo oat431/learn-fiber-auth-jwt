@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"oat431/learn-fiber-auth-jwt/internal/model"
 	"oat431/learn-fiber-auth-jwt/internal/payload/request"
@@ -19,10 +17,10 @@ import (
 )
 
 type authService struct {
-	repo                   repository.AuthRepository
-	refreshTokenRepo       repository.RefreshTokenRepository
-	emailVerifyTokenRepo   repository.EmailVerifyTokenRepository
-	emailService           *SMTPService
+	repo                 repository.AuthRepository
+	refreshTokenRepo     repository.RefreshTokenRepository
+	emailVerifyTokenRepo repository.EmailVerifyTokenRepository
+	emailService         *SMTPService
 }
 
 type AuthService interface {
@@ -59,11 +57,10 @@ func (s *authService) Register(ctx context.Context, request request.RegisterRequ
 	}
 
 	// Generate email verification token
-	tokenBytes := make([]byte, 32)
-	if _, err := rand.Read(tokenBytes); err != nil {
-		return nil, err
+	tokenStr := utils.GenerateVerifyToken()
+	if tokenStr == "" {
+		return nil, errors.New("failed to generate verification token")
 	}
-	tokenStr := hex.EncodeToString(tokenBytes)
 
 	emailVerifyToken := model.EmailVerifyToken{
 		BaseEntity: common.BaseEntity{
