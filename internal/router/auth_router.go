@@ -29,4 +29,8 @@ func RegisterAuthRoutes(router fiber.Router, controller *controller.AuthControll
 		middleware.JWTMiddleware,
 		controller.GetUserDetails,
 	)
+
+	route.Get("/verify-email",
+		controller.VerifyEmail,
+	)
 }

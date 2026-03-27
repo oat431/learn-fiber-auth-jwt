@@ -112,3 +112,34 @@ func (auth *AuthController) GetUserDetails(c fiber.Ctx) error {
 		Data:   authDto,
 	})
 }
+
+func (auth *AuthController) VerifyEmail(c fiber.Ctx) error {
+	token := c.Query("token")
+	if token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrBadRequest.Code,
+				ErrorCode: "VERIFY-01",
+				Message:   "Missing verification token",
+			},
+		})
+	}
+
+	if err := auth.service.VerifyEmail(c.Context(), token); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ResponseDTO[any]{
+			Status: common.ERROR,
+			Error: &common.ResponseDTOError{
+				HttpCode:  fiber.ErrBadRequest.Code,
+				ErrorCode: "VERIFY-02",
+				Message:   err.Error(),
+			},
+		})
+	}
+
+	message := "Email verified successfully"
+	return c.Status(fiber.StatusOK).JSON(common.ResponseDTO[string]{
+		Status: common.SUCCESS,
+		Data:   &message,
+	})
+}
