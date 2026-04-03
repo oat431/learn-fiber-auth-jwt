@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/gofiber/fiber/v3/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,6 +13,5 @@ func EncryptPassword(password string) (string, error) {
 }
 
 func ComparePassword(hashedPassword, password string) error {
-	log.Info("encryped" + hashedPassword + ": password :" + password)
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
