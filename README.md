@@ -6,3 +6,4 @@ source from fiber cookbook: [cookbook](https://docs.gofiber.io/recipes/auth-jwt/
 
 - JWT Authentication
 - Registered user with email verification
+- User Deatail API
